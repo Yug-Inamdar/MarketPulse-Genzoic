@@ -61,6 +61,7 @@ class StockDataService:
     
     def __init__(self):
         self.finnhub_key = os.getenv("FINNHUB_API_KEY")
+        self.alpha_vantage_key = os.getenv("ALPHA_VANTAGE_API_KEY")
     
     async def get_stock_data(self, ticker: str) -> Dict:
         """Fetch last 5 days of stock data"""
@@ -106,8 +107,15 @@ class StockDataService:
                                 "returns": returns,
                                 "prices": closes
                             }
+                    elif response.status == 403:
+                        logger.error(f"Finnhub API error: 403 Forbidden - Invalid or expired API key for ticker {ticker}")
+                        logger.info("Please verify your Finnhub API key in the .env file")
+                    elif response.status == 429:
+                        logger.error(f"Finnhub API error: 429 Rate limit exceeded for ticker {ticker}")
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"Finnhub API error {response.status} for ticker {ticker}: {error_text}")
                     
-                    logger.error(f"Finnhub API error: {response.status}")
                     return await self._get_mock_stock_data(ticker)
                     
         except Exception as e:
@@ -182,6 +190,7 @@ class NewsService:
     
     def __init__(self):
         self.gnews_key = os.getenv("GNEWS_API_KEY")
+        self.news_api_key = os.getenv("NEWS_API_KEY")
     
     async def get_news(self, ticker: str) -> List[Dict]:
         """Fetch latest news for a ticker"""
@@ -310,9 +319,15 @@ class LLMService:
         self.model = None
         if gemini_api_key:
             try:
-                self.model = genai.GenerativeModel('gemini-pro')
+                # Updated model name for current API
+                self.model = genai.GenerativeModel('gemini-1.5-flash')
             except Exception as e:
                 logger.error(f"Error initializing Gemini: {e}")
+                try:
+                    # Fallback to alternative model name
+                    self.model = genai.GenerativeModel('gemini-1.5-pro')
+                except Exception as e2:
+                    logger.error(f"Error with fallback model: {e2}")
     
     async def analyze_market_pulse(self, ticker: str, momentum_data: Dict, news_data: List[Dict]) -> Dict:
         """Analyze market data and return pulse with explanation"""

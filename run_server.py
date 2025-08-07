@@ -8,7 +8,7 @@ import os
 import subprocess
 
 def main():
-    print("🚀 Starting MarketPulse API Server...")
+    print("Starting MarketPulse API Server...")
     
     # Add src/backend to Python path
     backend_path = os.path.join(os.path.dirname(__file__), 'src', 'backend')
@@ -27,9 +27,9 @@ def main():
             "--port", "8000"
         ])
     except KeyboardInterrupt:
-        print("\n👋 Shutting down MarketPulse API Server...")
+        print("\nShutting down MarketPulse API Server...")
     except Exception as e:
-        print(f"❌ Error starting server: {e}")
+        print(f"Error starting server: {e}")
         return 1
     
     return 0
